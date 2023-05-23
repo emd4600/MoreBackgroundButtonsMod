@@ -78,28 +78,32 @@ member_detour(PlayModeBackgrounds_HandleUIButton__detour, Editors::PlayModeBackg
 {
 	bool detoured(uint32_t buttonID)
 	{
-		bool result = original_function(this, buttonID);
-		if (!result)
+		int numButtonsPerPage = CalculateNumItemsPerPage(mpPlayModeUI);
+		uint32_t buttonIDs[50];
+		buttonIDs[0] = 0x445B018;
+		buttonIDs[1] = 0x445B318;
+		buttonIDs[2] = 0x445B340;
+		buttonIDs[3] = 0x445B388;
+		for (int i = 4; i < numButtonsPerPage; i++)
 		{
-			int numButtons = CalculateNumItemsPerPage(mpPlayModeUI);
-			int numExtraButtons = numButtons - 4;
-			for (int i = 0; i < numExtraButtons; i++) 
+			buttonIDs[i] = kBaseButtonControlID + (i - 4);
+		}
+		for (int i = 0; i < numButtonsPerPage; i++)
+		{
+			if (buttonID == buttonIDs[i])
 			{
-				if (buttonID == kBaseButtonControlID + i) 
+				int backgroundIndex = mCurrentPageIndex * numButtonsPerPage + i;
+				if (mTargetIndex != backgroundIndex && backgroundIndex < mBackgrounds.size())
 				{
-					int backgroundIndex = mCurrentPageIndex * numButtons + i + 4;
-					if (mTargetIndex != backgroundIndex && backgroundIndex < mBackgrounds.size())
-					{
-						mTargetIndex = backgroundIndex;
-						ToggleBackgroundButtonHighlights(buttonID);
-						SwitchBackground();
-						result = true;
-					}
-					break;
+					mTargetIndex = backgroundIndex;
+					ToggleBackgroundButtonHighlights(buttonID);
+					SwitchBackground();
+					return true;
 				}
+				break;
 			}
 		}
-		return result;
+		return original_function(this, buttonID);
 	}
 };
 
